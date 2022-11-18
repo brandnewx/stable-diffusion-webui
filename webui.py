@@ -177,7 +177,8 @@ def webui():
 
         modules.script_callbacks.app_started_callback(demo, app)
 
-        wait_on_server(demo)
+        if not cmd_opts.test:
+            wait_on_server(demo)
 
         sd_samplers.set_samplers()
 
