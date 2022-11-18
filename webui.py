@@ -128,6 +128,16 @@ def wait_on_server(demo=None):
             break
 
 
+def test():
+    initialize()
+    demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
+    testapp = FastAPI()
+    setup_cors(testapp)
+    testapp.add_middleware(GZipMiddleware, minimum_size=1000)
+    testapi = create_api(testapp)
+    return
+
+
 def api_only():
     initialize()
 
@@ -140,11 +150,10 @@ def api_only():
 
     api.launch(server_name="0.0.0.0" if cmd_opts.listen else "127.0.0.1", port=cmd_opts.port if cmd_opts.port else 7861)
 
-
 def webui():
     launch_api = cmd_opts.api
     initialize()
-
+    
     while 1:
         demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
 
@@ -177,8 +186,7 @@ def webui():
 
         modules.script_callbacks.app_started_callback(demo, app)
 
-        if not cmd_opts.test:
-            wait_on_server(demo)
+        wait_on_server(demo)
 
         sd_samplers.set_samplers()
 
@@ -197,6 +205,10 @@ def webui():
 
 
 if __name__ == "__main__":
+    if cmd_opts.test:
+        test()
+        return
+    
     if cmd_opts.nowebui:
         api_only()
     else:
