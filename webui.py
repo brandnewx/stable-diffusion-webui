@@ -60,11 +60,16 @@ def initialize():
 
     modules.sd_vae.refresh_vae_list()
     modules.sd_models.load_model()
-    shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights()))
-    shared.opts.onchange("sd_vae", wrap_queued_call(lambda: modules.sd_vae.reload_vae_weights()), call=False)
-    shared.opts.onchange("sd_vae_as_default", wrap_queued_call(lambda: modules.sd_vae.reload_vae_weights()), call=False)
-    shared.opts.onchange("sd_hypernetwork", wrap_queued_call(lambda: shared.reload_hypernetworks()))
-    shared.opts.onchange("sd_hypernetwork_strength", modules.hypernetworks.hypernetwork.apply_strength)
+    shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(
+        lambda: modules.sd_models.reload_model_weights()))
+    shared.opts.onchange("sd_vae", wrap_queued_call(
+        lambda: modules.sd_vae.reload_vae_weights()), call=False)
+    shared.opts.onchange("sd_vae_as_default", wrap_queued_call(
+        lambda: modules.sd_vae.reload_vae_weights()), call=False)
+    shared.opts.onchange("sd_hypernetwork", wrap_queued_call(
+        lambda: shared.reload_hypernetworks()))
+    shared.opts.onchange("sd_hypernetwork_strength",
+                         modules.hypernetworks.hypernetwork.apply_strength)
     shared.opts.onchange("temp_dir", ui_tempdir.on_tmpdir_changed)
 
     if cmd_opts.tls_keyfile is not None and cmd_opts.tls_keyfile is not None:
@@ -73,7 +78,8 @@ def initialize():
             if not os.path.exists(cmd_opts.tls_keyfile):
                 print("Invalid path to TLS keyfile given")
             if not os.path.exists(cmd_opts.tls_certfile):
-                print(f"Invalid path to TLS certfile: '{cmd_opts.tls_certfile}'")
+                print(
+                    f"Invalid path to TLS certfile: '{cmd_opts.tls_certfile}'")
         except TypeError:
             cmd_opts.tls_keyfile = cmd_opts.tls_certfile = None
             print("TLS setup invalid, running webui without TLS")
@@ -90,11 +96,14 @@ def initialize():
 
 def setup_cors(app):
     if cmd_opts.cors_allow_origins and cmd_opts.cors_allow_origins_regex:
-        app.add_middleware(CORSMiddleware, allow_origins=cmd_opts.cors_allow_origins.split(','), allow_origin_regex=cmd_opts.cors_allow_origins_regex, allow_methods=['*'])
+        app.add_middleware(CORSMiddleware, allow_origins=cmd_opts.cors_allow_origins.split(
+            ','), allow_origin_regex=cmd_opts.cors_allow_origins_regex, allow_methods=['*'])
     elif cmd_opts.cors_allow_origins:
-        app.add_middleware(CORSMiddleware, allow_origins=cmd_opts.cors_allow_origins.split(','), allow_methods=['*'])
+        app.add_middleware(CORSMiddleware, allow_origins=cmd_opts.cors_allow_origins.split(
+            ','), allow_methods=['*'])
     elif cmd_opts.cors_allow_origins_regex:
-        app.add_middleware(CORSMiddleware, allow_origin_regex=cmd_opts.cors_allow_origins_regex, allow_methods=['*'])
+        app.add_middleware(
+            CORSMiddleware, allow_origin_regex=cmd_opts.cors_allow_origins_regex, allow_methods=['*'])
 
 
 def create_api(app):
@@ -116,7 +125,7 @@ def wait_on_server(demo=None):
 
 def test():
     initialize()
-    demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
+    demo = modules.ui.create_ui()
     testapp = FastAPI()
     setup_cors(testapp)
     testapp.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -134,12 +143,14 @@ def api_only():
 
     modules.script_callbacks.app_started_callback(None, app)
 
-    api.launch(server_name="0.0.0.0" if cmd_opts.listen else "127.0.0.1", port=cmd_opts.port if cmd_opts.port else 7861)
+    api.launch(server_name="0.0.0.0" if cmd_opts.listen else "127.0.0.1",
+               port=cmd_opts.port if cmd_opts.port else 7861)
+
 
 def webui():
     launch_api = cmd_opts.api
     initialize()
-    
+
     while 1:
         if shared.opts.clean_temp_dir_at_start:
             ui_tempdir.cleanup_tmpdr()
@@ -153,7 +164,8 @@ def webui():
             ssl_keyfile=cmd_opts.tls_keyfile,
             ssl_certfile=cmd_opts.tls_certfile,
             debug=cmd_opts.gradio_debug,
-            auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
+            auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip(
+                '"').split(',')] if cmd_opts.gradio_auth else None,
             inbrowser=cmd_opts.autolaunch,
             prevent_thread_lock=True
         )
@@ -164,7 +176,8 @@ def webui():
         # an attacker to trick the user into opening a malicious HTML page, which makes a request to the
         # running web ui and do whatever the attcker wants, including installing an extension and
         # runnnig its code. We disable this here. Suggested by RyotaK.
-        app.user_middleware = [x for x in app.user_middleware if x.cls.__name__ != 'CORSMiddleware']
+        app.user_middleware = [
+            x for x in app.user_middleware if x.cls.__name__ != 'CORSMiddleware']
 
         setup_cors(app)
 
